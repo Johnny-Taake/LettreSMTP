@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        BIN_NAME: RustLettreSMTP
+    image: rustlettresmtp:latest
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    environment:
+      RUST_LOG: debug
+      # SMTP_USER: ...
+      # SMTP_PASSWORD: ...
+      # SMTP_SERVER: ...
+      # SMTP_PORT: ...
+      APP_PORT: "8080"
+    restart: unless-stopped
+    volumes:
+      - ./email_sent.log:/app/email_sent.log
