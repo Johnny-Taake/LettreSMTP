@@ -11,6 +11,7 @@ dependencies = [
  "chrono",
  "config",
  "dotenvy",
+ "http",
  "lettre",
  "once_cell",
  "serde",

@@ -6,13 +6,16 @@ use crate::errors::config::ConfigError;
 use crate::types::logger::LogLevel;
 use crate::utils::mask_string::{mask_email, mask_secret};
 use crate::utils::{
-    allow_email_input_default, csv_to_vec, default_log_level, looks_like_email,
-    rate_defaults::{rate_limit_max_default, rate_limit_timeframe_seconds_default, use_rate_limit_default},
-    duplicate_emails_to_deafult_recipients_everytime_default,
+    allow_email_input_default, csv_to_vec, default_log_level,
+    duplicate_emails_to_deafult_recipients_everytime_default, looks_like_email,
+    rate_defaults::{
+        rate_limit_max_default, rate_limit_timeframe_seconds_default, use_rate_limit_default,
+    },
 };
 
 pub static CONFIG: Lazy<Settings> = Lazy::new(|| load().expect("Failed to load configuration"));
 
+#[allow(dead_code)]
 #[derive(Clone, Deserialize)]
 pub struct Settings {
     pub port: u16,
@@ -39,6 +42,9 @@ pub struct Settings {
 
     #[serde(deserialize_with = "csv_to_vec")]
     pub emails: Option<Vec<String>>,
+
+    #[serde(deserialize_with = "csv_to_vec")]
+    pub cors_origins: Option<Vec<String>>,
 }
 
 pub fn load() -> Result<Settings, ConfigError> {
@@ -141,7 +147,11 @@ impl<'a> fmt::Debug for Redacted<'a> {
                     .as_ref()
                     .map(|v| v.iter().map(|e| mask_email(e)).collect::<Vec<_>>()),
             )
-            .field("duplicate_emails_to_deafult_recipients_everytime", &s.duplicate_emails_to_deafult_recipients_everytime)
+            .field(
+                "duplicate_emails_to_deafult_recipients_everytime",
+                &s.duplicate_emails_to_deafult_recipients_everytime,
+            )
+            .field("cors_origins", &s.cors_origins)
             .finish()
     }
 }
