@@ -1,8 +1,9 @@
-use std::{net::SocketAddr, sync::Arc};
+use std::{net::IpAddr, sync::Arc};
 
 use axum::{
     Json,
-    extract::{ConnectInfo, State},
+    extract::{State},
+    Extension,
     http::{HeaderMap, StatusCode},
     response::IntoResponse,
 };
@@ -14,7 +15,7 @@ use crate::{
     services::send_email,
     state::AppState,
     types::{ApiError, ApiMessage, RequestPayload},
-    utils::{ip::extract_client_ip, mask_string::mask_email},
+    utils::mask_string::mask_email,
 };
 
 #[utoipa::path(
@@ -29,14 +30,16 @@ use crate::{
     ),
     tag = "requests"
 )]
-#[instrument(skip(state, payload, headers), fields(ip = %addr.ip()))]
+
+#[allow(unused_variables)]
+#[instrument(skip(state, payload, headers), fields(ip = %client_ip))]
 pub async fn handle_request(
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    Extension(client_ip): Extension<IpAddr>,
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     payload: Result<Json<RequestPayload>, axum::extract::rejection::JsonRejection>,
 ) -> axum::response::Response {
-    let ip = extract_client_ip(&headers, &addr);
+    let ip = client_ip.to_string();
     let now = Utc::now().timestamp();
 
     if CONFIG.use_rate_limit {
@@ -50,7 +53,7 @@ pub async fn handle_request(
             debug!(removed = (before - after), "pruned");
         }
         if entry.len() >= CONFIG.rate_limit_max as usize {
-            info!(%ip, "rate limit exceeded");
+            info!(ip = %ip, "rate limit exceeded");
             return (
                 StatusCode::TOO_MANY_REQUESTS,
                 Json(ApiError {
@@ -97,7 +100,6 @@ pub async fn handle_request(
             .into_response();
     }
 
-    // Build recipient list
     let mut recipients: Vec<String> = Vec::new();
 
     if CONFIG.allow_email_input {
@@ -186,7 +188,7 @@ pub async fn handle_request(
             .into_response();
     }
 
-    info!(%ip, "accepted");
+    info!(ip = %ip, "accepted");
     (
         StatusCode::OK,
         Json(ApiMessage {

@@ -18,9 +18,11 @@ mod services;
 mod state;
 mod types;
 mod utils;
+mod middlewares;
+mod shutdown;
+
 use config::{ApiPaths, CONFIG};
 use state::AppState;
-mod shutdown;
 use shutdown::shutdown_signal;
 
 #[tokio::main]
@@ -38,6 +40,7 @@ async fn main() {
                 .url(ApiPaths::OPENAPI_JSON, api::openapi::ApiDoc::openapi()),
         )
         .layer(TraceLayer::new_for_http())
+        .route_layer(axum::middleware::from_fn(middlewares::real_ip_layer))
         .with_state(state.clone());
 
     let allowed_origins: Vec<HeaderValue> = CONFIG

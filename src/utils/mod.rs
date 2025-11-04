@@ -5,7 +5,6 @@ pub use csv_to_vec::csv_to_vec;
 pub mod mask_string;
 mod log;
 pub use log::{log_email_to_file, default_log_level};
-pub mod ip;
 mod allow_email_input_default;
 pub use allow_email_input_default::allow_email_input_default;
 pub mod rate_defaults;
