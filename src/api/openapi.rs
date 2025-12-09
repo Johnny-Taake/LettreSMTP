@@ -10,8 +10,11 @@ use utoipa::OpenApi;
         schemas(
             crate::types::RequestPayload,
             crate::types::ApiMessage,
-            crate::types::ApiError,
-            crate::types::HealthResponse
+            crate::types::HealthResponse,
+            crate::types::ErrorResponse,
+            crate::types::ErrorCode,
+            crate::types::EmailSendResponse,
+            crate::types::FailedRecipient
         )
     ),
     tags(

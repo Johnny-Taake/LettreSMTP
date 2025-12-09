@@ -1,10 +1,11 @@
 use lettre::message::Mailbox;
 use lettre::transport::smtp::authentication::{Credentials, Mechanism};
 use lettre::{Message, SmtpTransport, Transport};
-use tracing::error;
+use tracing::{error, debug, warn};
 
 use crate::config::CONFIG;
 use crate::utils::log_email_to_file;
+use crate::utils::mask_string::mask_email;
 
 pub fn send_email(
     recipient: &str,
@@ -27,6 +28,8 @@ pub fn send_email(
         .authentication(vec![Mechanism::Login])
         .build();
 
+    debug!("Attempting to send email to: {} with subject: {}", mask_email(recipient), subject);
+
     let result = mailer.send(&email);
 
     let success = result.is_ok();
@@ -34,6 +37,30 @@ pub fn send_email(
         error!("Warning: Failed to write to log file: {}", e);
     }
 
-    result?;
-    Ok(())
+    match result {
+        Ok(_) => {
+            debug!("Email sent successfully to: {}", mask_email(recipient));
+            Ok(())
+        }
+        Err(e) => {
+            error!(
+                "SMTP send failed for recipient: {}, server: {}, error: {}",
+                mask_email(recipient),
+                CONFIG.smtp_server,
+                e
+            );
+
+            if e.to_string().to_lowercase().contains("authentication") ||
+               e.to_string().to_lowercase().contains("login") ||
+               e.to_string().to_lowercase().contains("credentials") {
+                warn!(
+                    "Authentication failed for SMTP server: {} with user: {}, please check credentials",
+                    CONFIG.smtp_server,
+                    mask_email(&CONFIG.smtp_user)
+                );
+            }
+
+            Err(Box::new(e))
+        }
+    }
 }

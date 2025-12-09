@@ -13,7 +13,7 @@ pub fn mask_email(email: &str) -> String {
         return mask_secret(email, 2);
     };
     let n = local.chars().count();
-    let keep = (n + 1) / 2; // ceil half
+    let keep = n.div_ceil(2); // ceil half
     let kept: String = local.chars().take(keep.max(1)).collect();
     let stars = "*".repeat(n.saturating_sub(keep).max(1));
     format!("{kept}{stars}@{domain}")

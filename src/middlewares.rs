@@ -17,11 +17,7 @@ pub async fn real_ip_layer(
         if let Some(v) = headers.get("x-forwarded-for") {
             if let Ok(s) = v.to_str() {
                 if let Some(first) = s.split(',').next() {
-                    if let Ok(ip) = first.trim().parse::<IpAddr>() {
-                        Some(ip)
-                    } else {
-                        None
-                    }
+                    first.trim().parse::<IpAddr>().ok()
                 } else {
                     None
                 }

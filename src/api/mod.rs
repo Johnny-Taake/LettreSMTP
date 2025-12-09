@@ -7,6 +7,7 @@ use crate::config::ApiPaths;
 
 pub mod routes;
 pub mod openapi;
+pub mod responses;
 
 pub fn app() -> Router<Arc<AppState>> {
     Router::new().nest(ApiPaths::V1_PREFIX, routes::router())
