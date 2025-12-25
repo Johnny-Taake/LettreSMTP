@@ -9,7 +9,7 @@ use crate::types::HealthResponse;
     path = String::from(ApiPaths::V1_PREFIX) + ApiPaths::HEALTH,
     responses(
         (status = 200, description = "Service is healthy", body = HealthResponse),
-        (status = 500, description = "Internal server error", body = crate::types::ApiError)
+        (status = 500, description = "Internal server error", body = crate::types::ErrorResponse)
     ),
     tag = "health"
 )]
